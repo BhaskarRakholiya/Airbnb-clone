@@ -34,7 +34,7 @@ export default function RegisterModal({}: Props) {
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     setIsLoading(true);
     axios
-      .post("/register", data)
+      .post("/api/register", data)
       .then(() => registerModal.onClose())
       .catch((error) => toast.error("Something went wrong"))
       .finally(() => setIsLoading(false));
