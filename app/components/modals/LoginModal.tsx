@@ -1,23 +1,28 @@
 "use client";
 
 import axios from "axios";
-import { MouseEvent, useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { AiFillGithub } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import useRegisterModal from "@/app/hooks/useRegisterModal";
+import useLoginModal from "@/app/hooks/useLoginModal";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
 import Modal from "./Modal";
 import Heading from "../Heading";
 import Input from "../Inputs/Input";
 import { toast } from "react-hot-toast";
 import Button from "../Button";
 import { IconBaseProps } from "react-icons";
-import { signIn } from "next-auth/react";
 
 type Props = {};
 
-export default function RegisterModal({}: Props) {
+export default function LoginModal({}: Props) {
   const registerModal = useRegisterModal();
+  const loginModal = useLoginModal();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -26,7 +31,6 @@ export default function RegisterModal({}: Props) {
     formState: { errors },
   } = useForm<FieldValues>({
     defaultValues: {
-      name: "",
       email: "",
       password: "",
     },
@@ -34,29 +38,30 @@ export default function RegisterModal({}: Props) {
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     setIsLoading(true);
-    axios
-      .post("/api/register", data)
-      .then(() => registerModal.onClose())
-      .catch((error) => toast.error("Something went wrong"))
-      .finally(() => setIsLoading(false));
+    signIn(`credentials`, {
+      ...data,
+      redirect: false,
+    }).then((callback) => {
+      setIsLoading(false);
+      if (callback?.ok) {
+        toast.success("logged in");
+        router.refresh();
+        loginModal.onClose();
+      }
+      if (callback?.error) {
+        toast.error(callback.error);
+      }
+    });
   };
 
   const bodyContent = (
     <div className="flex flex-col gap-4">
-      <Heading title="Welcome to Airbnb" subTitle="Create an Account!" center />
+      <Heading title="Welcome back" subTitle="Login to your account" center />
       <Input
         id="email"
         disabled={isLoading}
         required
         label="Email"
-        register={register}
-        errors={errors}
-      />
-      <Input
-        id="name"
-        disabled={isLoading}
-        required
-        label="Name"
         register={register}
         errors={errors}
       />
@@ -100,7 +105,7 @@ export default function RegisterModal({}: Props) {
             gap-2
           "
         >
-          <div> Already have an Account? </div>
+          <div> Don't have an Account? </div>
           <div
             onClick={registerModal.onClose}
             className="
@@ -110,7 +115,7 @@ export default function RegisterModal({}: Props) {
               font-semibold
             "
           >
-            Log in
+            Sign Up
           </div>
         </div>
       </div>
@@ -119,17 +124,17 @@ export default function RegisterModal({}: Props) {
   return (
     <Modal
       disabled={isLoading}
-      isOpen={registerModal.isOpen}
-      title="Register"
+      isOpen={loginModal.isOpen}
+      title="Login"
       actionLabel="Continue"
-      onClose={registerModal.onClose}
+      onClose={loginModal.onClose}
       onSubmit={handleSubmit(onSubmit)}
       body={bodyContent}
       footer={footerContent}
-      //   secondaryAction={function (): void {
-      //     throw new Error("Function not implemented.");
-      //   }}
-      //   secondaryActionLabel={""}
+      // secondaryAction={function (): void {
+      //   throw new Error("Function not implemented.");
+      // }}
+      // secondaryActionLabel={""}
     />
   );
 }

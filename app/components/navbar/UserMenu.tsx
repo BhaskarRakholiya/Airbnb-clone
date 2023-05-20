@@ -4,17 +4,37 @@ import { AiOutlineMenu } from "react-icons/ai";
 import Avatar from "../Avatar";
 import MenuItem from "./MenuItem";
 import useRegisterModal from "@/app/hooks/useRegisterModal";
+import useLoginModal from "@/app/hooks/useLoginModal";
+import { signOut } from "next-auth/react";
+import { SafeUser } from "@/app/types";
 
-export default function UserMenu() {
-  const [isOpen, setIsopen] = useState(false);
+type UserMenuProps = {
+  currentUser?: SafeUser | null;
+};
+
+export default function UserMenu({
+  currentUser,
+}: UserMenuProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
   const registerModal = useRegisterModal();
+  const loginModal = useLoginModal();
+
+  const handleLogin = useCallback(() => {
+    loginModal.onOpen();
+    setIsOpen(false);
+  }, []);
 
   const handleSignUp = useCallback(() => {
     registerModal.onOpen();
-    setIsopen(false);
+    setIsOpen(false);
   }, []);
 
-  const toggleOpen = useCallback(() => setIsopen((value) => !value), []);
+  const toggleOpen = useCallback(
+    () => setIsOpen((value) => !value),
+    []
+  );
+
   return (
     <div className="relative">
       <div
@@ -61,7 +81,7 @@ export default function UserMenu() {
         >
           <AiOutlineMenu />
           <div className="hidden  md:block">
-            <Avatar />
+            <Avatar src={currentUser?.image} />
           </div>
         </div>
       </div>
@@ -80,10 +100,45 @@ export default function UserMenu() {
             text-sm"
         >
           <div className="flex flex-col cursor-pointer">
-            <>
-              <MenuItem label="Login" onPress={() => {}} />
-              <MenuItem label="Sign up" onPress={handleSignUp} />
-            </>
+            {currentUser ? (
+              <>
+                <MenuItem
+                  label="My Trips"
+                  onPress={() => {}}
+                />
+                <MenuItem
+                  label="My Favorites"
+                  onPress={() => {}}
+                />
+                <MenuItem
+                  label="My Reservations"
+                  onPress={() => {}}
+                />
+                <MenuItem
+                  label="My Properties"
+                  onPress={() => {}}
+                />
+                <MenuItem
+                  label="Airbnb my home"
+                  onPress={() => {}}
+                />
+                <MenuItem
+                  label="Logout"
+                  onPress={signOut}
+                />
+              </>
+            ) : (
+              <>
+                <MenuItem
+                  label="Login"
+                  onPress={handleLogin}
+                />
+                <MenuItem
+                  label="Sign up"
+                  onPress={handleSignUp}
+                />
+              </>
+            )}
           </div>
         </div>
       )}
