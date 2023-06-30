@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useCallback, useState } from "react";
 import { AiOutlineMenu } from "react-icons/ai";
 import Avatar from "../Avatar";
@@ -7,18 +8,18 @@ import useRegisterModal from "@/app/hooks/useRegisterModal";
 import useLoginModal from "@/app/hooks/useLoginModal";
 import { signOut } from "next-auth/react";
 import { SafeUser } from "@/app/types";
+import useRentModal from "@/app/hooks/useRentModal";
 
 type UserMenuProps = {
   currentUser?: SafeUser | null;
 };
 
-export default function UserMenu({
-  currentUser,
-}: UserMenuProps) {
+export default function UserMenu({ currentUser }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const registerModal = useRegisterModal();
   const loginModal = useLoginModal();
+  const rentModal = useRentModal();
 
   const handleLogin = useCallback(() => {
     loginModal.onOpen();
@@ -30,10 +31,14 @@ export default function UserMenu({
     setIsOpen(false);
   }, []);
 
-  const toggleOpen = useCallback(
-    () => setIsOpen((value) => !value),
-    []
-  );
+  const toggleOpen = useCallback(() => setIsOpen((value) => !value), []);
+
+  const onRent = useCallback(() => {
+    if (!currentUser) {
+      return loginModal.onOpen();
+    }
+    rentModal.onOpen();
+  }, [currentUser, loginModal]);
 
   return (
     <div className="relative">
@@ -45,7 +50,7 @@ export default function UserMenu({
           gap-3"
       >
         <div
-          onClick={() => {}}
+          onClick={onRent}
           className="
             hidden 
             md:block 
@@ -102,41 +107,17 @@ export default function UserMenu({
           <div className="flex flex-col cursor-pointer">
             {currentUser ? (
               <>
-                <MenuItem
-                  label="My Trips"
-                  onPress={() => {}}
-                />
-                <MenuItem
-                  label="My Favorites"
-                  onPress={() => {}}
-                />
-                <MenuItem
-                  label="My Reservations"
-                  onPress={() => {}}
-                />
-                <MenuItem
-                  label="My Properties"
-                  onPress={() => {}}
-                />
-                <MenuItem
-                  label="Airbnb my home"
-                  onPress={() => {}}
-                />
-                <MenuItem
-                  label="Logout"
-                  onPress={signOut}
-                />
+                <MenuItem label="My Trips" onPress={() => {}} />
+                <MenuItem label="My Favorites" onPress={() => {}} />
+                <MenuItem label="My Reservations" onPress={() => {}} />
+                <MenuItem label="My Properties" onPress={() => {}} />
+                <MenuItem label="Airbnb my home" onPress={rentModal.onOpen} />
+                <MenuItem label="Logout" onPress={signOut} />
               </>
             ) : (
               <>
-                <MenuItem
-                  label="Login"
-                  onPress={handleLogin}
-                />
-                <MenuItem
-                  label="Sign up"
-                  onPress={handleSignUp}
-                />
+                <MenuItem label="Login" onPress={handleLogin} />
+                <MenuItem label="Sign up" onPress={handleSignUp} />
               </>
             )}
           </div>

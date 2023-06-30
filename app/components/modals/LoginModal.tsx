@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { AiFillGithub } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
@@ -22,6 +22,7 @@ type Props = {};
 export default function LoginModal({}: Props) {
   const registerModal = useRegisterModal();
   const loginModal = useLoginModal();
+
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -44,15 +45,20 @@ export default function LoginModal({}: Props) {
     }).then((callback) => {
       setIsLoading(false);
       if (callback?.ok) {
-        toast.success("logged in");
         router.refresh();
         loginModal.onClose();
+        toast.success("logged in");
       }
       if (callback?.error) {
         toast.error(callback.error);
       }
     });
   };
+
+  const toggle = useCallback(() => {
+    loginModal.onClose();
+    registerModal.onOpen();
+  }, [loginModal, registerModal]);
 
   const bodyContent = (
     <div className="flex flex-col gap-4">
@@ -82,7 +88,21 @@ export default function LoginModal({}: Props) {
       <hr />
       <Button
         label={"Continue with google"}
-        onClick={() => signIn("google")}
+        onClick={() => {
+          setIsLoading(false);
+          signIn("google").then((callback) => {
+            setIsLoading(false);
+            console.log(callback);
+            if (callback?.ok) {
+              router.refresh();
+              loginModal.onClose();
+              toast.success("logged in");
+            }
+            if (callback?.error) {
+              toast.error(callback.error);
+            }
+          });
+        }}
         disabled={false}
         outline
         small={false}
@@ -107,7 +127,7 @@ export default function LoginModal({}: Props) {
         >
           <div> Don't have an Account? </div>
           <div
-            onClick={registerModal.onClose}
+            onClick={toggle}
             className="
               text-neutral-800
               hover:underline
@@ -131,10 +151,10 @@ export default function LoginModal({}: Props) {
       onSubmit={handleSubmit(onSubmit)}
       body={bodyContent}
       footer={footerContent}
-      // secondaryAction={function (): void {
-      //   throw new Error("Function not implemented.");
-      // }}
-      // secondaryActionLabel={""}
+      secondaryAction={function (): void {
+        throw new Error("Function not implemented.");
+      }}
+      secondaryActionLabel={""}
     />
   );
 }

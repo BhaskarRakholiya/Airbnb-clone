@@ -14,7 +14,7 @@ type Props = {
   footer: React.ReactElement;
   actionLabel: string;
   disabled: boolean;
-  secondaryAction: () => void;
+  secondaryAction: (() => void) | undefined;
   secondaryActionLabel: string;
 };
 
